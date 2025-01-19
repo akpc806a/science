@@ -7,6 +7,7 @@
 \usepackage{amssymb}
 \usepackage{tikz}
 \usepackage{pgfplots}
+\usepackage[left=2cm, right=2cm]{geometry}
  
 \DeclareMathOperator{\const}{const}
 \DeclareMathOperator{\sign}{sign}
@@ -24,21 +25,63 @@
   \usepackage{pstricks}%variant: \usepackage{pst-all}
 \fi
 
-\title{Trajectory tracking with singularities: homotopy continuation approach}
+\title{Nonlinear Trajectory Tracking with Singularities: Homotopy Continuation Approach}
 %\author{Alex Borisevich}
 
 \begin{document}
 
 \maketitle
-This paper deals with a class of nonlinear MIMO system that is affine in input $u$
+
+This article deals with a class of nonlinear MIMO system that is affine in input $u$
 
 \begin{equation}
 \dot x = f(x) + g(x) \cdot u, \; y = h(x)
 \end{equation}
 
-where $x \in \R^n$ and $u,y \in \R^m$.
+where:
 
-TODO:
+- \( x(t) \in \mathbb{R}^n \): state vector,
+
+- \( u(t) \in \mathbb{R}^m \): input vector,
+
+- \( y(t) \in \mathbb{R}^m \): output vector (same dimension as \( u(t) \), making it "square"),
+
+- \( f(x(t)) \): drift term (nonlinear in \( x(t) \)),
+
+- \( g(x(t)) \): input coupling matrix (can be state-dependent),
+
+- \( h(x(t)) \): output function (nonlinear mapping of the states).
+
+Let's considering systems with relative degree 1 as they are common in applications where quick response and feedback are required, such as force-controlled robots or electrical circuits.
+
+A system has relative degree 1 if the output directly depends on the input through the first derivative, without requiring higher-order differentiation. Mathematically, this means the control input \( u(t) \) appears in the output's first time derivative \( \dot{y}(t) \):
+
+\begin{equation}
+\dot{y}(t) = \frac{\partial h}{\partial x} \cdot \big[f(x) + g(x)u(t)\big].
+\end{equation}
+ 
+The input \( u(t) \) explicitly influences \( \dot{y}(t) \) through the term \( \frac{\partial h}{\partial x} g(x)u(t) \), ensuring a relative degree of 1.
+
+The dynamics can be simplified to:
+
+\begin{equation}
+\dot{x}(t) = f(x) + g(x)u, \quad \dot{y}(t) = \frac{\partial h}{\partial x}g(x)u + \frac{\partial h}{\partial x}f(x).
+\end{equation}
+
+If \( \frac{\partial h}{\partial x} g(x)u(t) \) is invertible the following techniques could be uses by defining the control \( u \) as:
+
+\begin{equation}
+u = \big(\frac{\partial h}{\partial x} g(x)\big)^{-1} \big(v - \frac{\partial h}{\partial x} f(x)\big).
+\end{equation}
+
+After this substitution, the system dynamics become:
+
+\begin{equation}
+\dot{y} = v.
+\end{equation}
+
+The system is now linear in terms of \( v \), so standard linear control techniques can be applied.
+This is knows as feedback linearization, it transforms a nonlinear system into an equivalent linear system by applying a nonlinear feedback control law.
 
 \section{Motivating example}
 
@@ -77,7 +120,7 @@ Let's consider very simple system that is just
 The particular nonlinearity $h$ appears in some real word-applications like I-V curve of a tunnel diode.
 
 From the control point of view, the system should be output controllable since any value of $y \in \R$ is reachable by substituting corresponding value of $x$.
-However, from the linearization point of view, the $h$ has two singular points that prevent the system from linearization:
+However, from the linearization point of view, the $h$ has two singular points that prevent the system from the feedback linearization:
 
 \begin{equation}
 \frac{\partial h}{\partial x} = 3 x^2 - 1 = 0 
@@ -195,7 +238,7 @@ Direct calculation of time derivative $\dot H$ of \eqref{hom_func} gives:
 
 \subsection{Well-behaving function behaviour}
 
-Consider a well-behaving function $f(x)$ in terms of $\rank D f(x) = n$ so that the $D f(x)$ is an invertible matrix. This consideration is important since by Sard's theorem that the set of critical values (that is, the image of the set of critical points where Jacobian is not full rank $\rank D f(x) < n$) of a smooth function $f$ from one Euclidean space or manifold to another is a null set. Thus a function $f$ is almost everywhere in its domain is a well-behaving function.
+Consider a well-behaving function $f(x)$ in terms of $\rank D f(x) = n$ so that the $D f(x)$ is an invertible matrix. This consideration is important since by Sard's theorem that the set of critical values (that is, the image of the set of critical points where Jacobian is not full rank $\rank D f(x) < n$) of a smooth function $f$ from one Euclidean space or manifold to another is a null set. Thus a function $f$ almost everywhere in its domain is a well-behaving function.
 
 If $\rank D f(x) = n$ then it is possible to can mulitply the \eqref{diff_hom_func} by $\Bigl[ D f(x) \Bigr]^{-1}$ and obtain $\dot x$ as a function of $\dot \lambda$:
 
@@ -335,9 +378,7 @@ But generally $\mu$ is allowed to deviate from time $t$ to ovecome singularities
 
 In this section we are going to follow the approach developed in [].
 
-Below is a block-structure viewpoint of the Jacobian $D H(x,\mu,t)$ for the particular homotopy function \eqref{hom_tracking}.
-
-We'll split the Jacobian into two main blocks:  
+Below is a block-structure viewpoint of the Jacobian $D H(x,\mu,t)$ for the particular homotopy function \eqref{hom_tracking} obtained by splitting the Jacobian into two main blocks:  
 
 - A: the block corresponding to partial derivatives w.r.t. $(x,\mu)$, which is $n \times (n+1)$ matrix.  
 
@@ -474,7 +515,7 @@ The solution \eqref{solution} together with conditions \eqref{conditions} determ
 
 \subsection{Accuracy of tracking}
  
-Generally, the conditinos \eqref{tracking_conditions} may not be satisfied everywhere since the reference trajectory $y^*(t)$ is not exactly tracked. Particularly in two cases: if the $x_0$ doesn't lie on the $y^*(t)$ such there is an initial transient to reach the $y^*(t)$, or if the trajectory tracking requires overcoming singular points of $f(x)$.
+Generally, the conditinos \eqref{tracking_conditions} may not be satisfied everywhere since the reference trajectory $y^*(t)$ is not exactly tracked. Particularly in two cases: if the $f(x_0)$ doesn't lie on the $y^*(t)$ and there is an initial transient to reach the $y^*(t)$, or if the trajectory tracking requires overcoming singular points of $f(x)$.
 
 It is expected to minimize a following type of criteria to ensure accuracy of the trajectory tracking
   
@@ -529,7 +570,7 @@ and
 \gamma = k \cdot e(t)
 \end{equation}
 
-then for a sufficiently large scalar constant $k > 0 > m$ the error $e(t)$ is bounded $|e(t)| < \epsilon$.
+then for a sufficiently large scalar constant $k > 0$ the error $e(t)$ is bounded $|e(t)| < \epsilon$.
 
 Let's define block matrices $A$ and $B$ for the particuar homotopy function under consideration \eqref{diff_hom_tracking} as
 
@@ -580,7 +621,7 @@ the solution with the initial condition is
 \mu(t) = t - \frac{1}{k} + \Bigl(\mu(0)+\frac{1}{k}\Bigr) \cdot e^{-kt} \to t - \frac{1}{k}
 \end{equation}
 
-Thus for $t \to \infty$ the $\mu(t)$ follows $t$ up to to $-1/k$, so for $k$ the asymptotic tracking error is
+Thus for $t \to \infty$ the $\mu(t)$ follows $t$ up to to $-1/k$ and the asymptotic tracking error is
 
 \begin{equation}
 |e(t)| = |t - \mu(t)| \le 1/k
@@ -588,6 +629,8 @@ Thus for $t \to \infty$ the $\mu(t)$ follows $t$ up to to $-1/k$, so for $k$ the
 
 
 \section{Numerical simulations}
+
+\subsection{Toy example}
 
 Let's consider a problem of tracking the reference $y^*(t) = -6 \cos(t)$ by a toy example \eqref{toy_example} given as a function $h(x) = x (x^2 - 1)$.
 The simulations obtained with $k = 100$.
@@ -615,6 +658,47 @@ Figure 2. Dynamics of the function argument $x(t)$.
 
 Figure 3. Dynamics of the parameter $\mu$ (blue) compared with time $t$ (red).
 \end{center}
+
+\subsection{2-DOF planar robotic arm}
+
+The singular positions of a 2-DOF planar robotic arm occur when the robot's Jacobian matrix becomes singular. This leads to a loss of controllability or a situation where certain end-effector motions are not possible.
+
+The end-effector position of the robot is given by forward kinematics equations:
+\[
+x = L_1 \cos(q_1) + L_2 \cos(q_1 + q_2),
+\]
+\[
+y = L_1 \sin(q_1) + L_2 \sin(q_1 + q_2),
+\]
+where:
+- \( q_1, q_2 \): Joint angles.
+- \( L_1, L_2 \): Link lengths.
+
+The Jacobian matrix relates the joint velocities \( \dot{\mathbf{q}} = [\dot{q}_1, \dot{q}_2]^T \) to the end-effector velocities \( \dot{\mathbf{x}} = [\dot{x}, \dot{y}]^T \):
+\[
+\dot{\mathbf{x}} = \mathbf{J}(\mathbf{q}) \dot{\mathbf{q}},
+\]
+
+where the Jacobian matrix \( \mathbf{J}(\mathbf{q}) \) is:
+\[
+\mathbf{J}(\mathbf{q}) =
+\begin{bmatrix}
+-\left( L_1 \sin(q_1) + L_2 \sin(q_1 + q_2) \right) & -L_2 \sin(q_1 + q_2) \\
+\left( L_1 \cos(q_1) + L_2 \cos(q_1 + q_2) \right) & L_2 \cos(q_1 + q_2)
+\end{bmatrix}.
+\]
+
+Singularities occur when the determinant of the Jacobian matrix is zero:
+\[
+\det(\mathbf{J}(\mathbf{q})) = 0.
+\]
+
+The determinant becomes zero when:
+\[
+\sin(q_2) = 0 \quad \implies \quad q_2 = 0 \, \text{or} \, q_2 = \pi.
+\]
+
+The physical interpretation of the singularities consists of two cases: when \( q_2 = 0 \) the two links are fully extended in a straight line and the arm is at its maximum reach, or when \( q_2 = \pi \) the two links are folded back into a straight line and the arm is at its minimum reach, fully retracted.
 
 \end{document}
 
